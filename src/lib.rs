@@ -51,6 +51,39 @@ where
     out
 }
 
+/// Split the elements of a container in randomized sets which contain a
+/// a part (in `splits`) of the input.
+///
+/// # Example
+///
+/// ```
+/// use rand_split::split_parts_ref;
+///
+/// println!("{:#?}", split_parts_ref(&mut [1,2,3,4,5,6,8,9,10], &[0.4, 0.2, 0.4]));
+/// ```
+pub fn split_parts_ref<'a, T>(cont: &'a mut [T], splits: &[f32]) -> Vec<&'a mut [T]>
+{
+    let n = cont.len();
+    let n_weights = splits.len();
+    let total_weights = splits.iter().sum::<f32>();
+
+    let mut out = Vec::with_capacity(n);
+    let mut left = cont;
+    left.shuffle(&mut rand::thread_rng());
+    for sp in splits
+        .iter()
+        .map(|w| (w * (n as f32) / total_weights) as usize)
+        .take(n_weights - 1)
+    {
+        let (right, l) = left.split_at_mut(sp);
+        out.push(right);
+        left = l;
+    }
+    out.push(left);
+
+    out
+}
+
 /// Generate train-test splits. Wrapper around [`split_parts`](./split_parts)
 /// # Examples
 ///
